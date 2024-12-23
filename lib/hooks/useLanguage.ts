@@ -5,54 +5,79 @@ import { translations } from '../i18n/translations';
 
 type Language = 'en' | 'zh';
 
-type LanguageContextType = {
+interface LanguageContextType {
   language: Language;
   setLanguage: (lang: Language) => void;
-  t: (key: string) => any;
-};
+  t: (key: string) => string;
+}
 
-const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
+const LanguageContext = createContext<LanguageContextType | null>(null);
+
+function getNestedValue(obj: any, path: string[]): string {
+  let current = obj;
+  for (const key of path) {
+    if (current && typeof current === 'object' && key in current) {
+      current = current[key];
+    } else {
+      return '';
+    }
+  }
+  return typeof current === 'string' ? current : '';
+}
 
 export function LanguageProvider({ children }: { children: ReactNode }) {
   const [language, setLanguage] = useState<Language>(() => {
-    // 从 localStorage 获取语言设置，如果没有则使用浏览器语言或默认为 'en'
-    if (typeof window !== 'undefined') {
-      const savedLanguage = localStorage.getItem('language') as Language;
-      if (savedLanguage && (savedLanguage === 'en' || savedLanguage === 'zh')) {
-        return savedLanguage;
-      }
-      const browserLang = navigator.language.toLowerCase();
-      return browserLang.startsWith('zh') ? 'zh' : 'en';
+    if (typeof window === 'undefined') return 'en';
+    
+    const savedLanguage = localStorage.getItem('language') as Language;
+    if (savedLanguage === 'en' || savedLanguage === 'zh') {
+      return savedLanguage;
     }
-    return 'en';
+    
+    const browserLang = navigator.language.toLowerCase();
+    return browserLang.startsWith('zh') ? 'zh' : 'en';
   });
 
-  // 当语言改变时，保存到 localStorage
   useEffect(() => {
     if (typeof window !== 'undefined') {
       localStorage.setItem('language', language);
     }
   }, [language]);
 
-  const t = useCallback((key: string) => {
-    const keys = key.split('.');
-    let value = translations[language];
-    for (const k of keys) {
-      value = value[k];
+  const t = useCallback((key: string): string => {
+    try {
+      const keys = key.split('.');
+      const value = getNestedValue(translations[language], keys);
+      
+      if (value) {
+        return value;
+      }
+
+      // 如果在当前语言中找不到，尝试使用英语
+      const fallbackValue = getNestedValue(translations.en, keys);
+      return fallbackValue || key;
+    } catch (error) {
+      console.error('Translation error:', error);
+      return key;
     }
-    return value;
   }, [language]);
 
+  const value: LanguageContextType = {
+    language,
+    setLanguage,
+    t
+  };
+
   return (
-    <LanguageContext.Provider value={{ language, setLanguage, t }}>
+    <LanguageContext.Provider value={value}>
       {children}
     </LanguageContext.Provider>
   );
 }
 
-export function useLanguage() {
+export function useLanguage(): LanguageContextType {
   const context = useContext(LanguageContext);
-  if (context === undefined) {
+  if (!context) {
     throw new Error('useLanguage must be used within a LanguageProvider');
   }
   return context;
