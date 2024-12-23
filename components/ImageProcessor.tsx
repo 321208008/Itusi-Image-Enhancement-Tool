@@ -194,14 +194,14 @@ export function ImageProcessor() {
   const getCurrentEffectName = () => {
     const category = currentEffect && STYLE_MAP[currentEffect] 
       ? 'styles' 
-      : (Object.keys(t('effects')).includes(currentEffect || '') 
+      : (Object.keys(translations[language].effects).includes(currentEffect || '') 
         ? 'effects' 
         : 'enhancement');
     
-    const effects = t(category);
+    const effects = translations[language][category] as Record<string, string>;
     return {
       category: t(`categories.${category}`),
-      effect: currentEffect ? effects[currentEffect] : ''
+      effect: currentEffect && effects ? effects[currentEffect as keyof typeof effects] || '' : ''
     };
   };
 
