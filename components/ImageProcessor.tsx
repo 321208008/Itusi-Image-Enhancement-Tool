@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useLanguage } from '@/lib/contexts/LanguageContext';
+import { translations } from '@/lib/i18n/translations';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/components/ui/use-toast';
 
@@ -22,8 +23,12 @@ const STYLE_MAP: Record<string, string> = {
   'lavender': 'lavender'
 };
 
+type TranslationCategory = {
+  [key: string]: string;
+};
+
 export function ImageProcessor() {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const { toast } = useToast();
   const [image, setImage] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
@@ -142,8 +147,11 @@ export function ImageProcessor() {
   };
 
   const renderEffectButtons = (category: 'effects' | 'styles' | 'enhancement') => {
-    const effects = t(category);
-    return Object.entries(effects).map(([key, label]) => (
+    const categoryTranslations = translations[language][category];
+    if (!categoryTranslations) return null;
+    
+    const entries = Object.entries(categoryTranslations);
+    return entries.map(([key, label]: [string, string]) => (
       <Button
         key={key}
         variant="outline"

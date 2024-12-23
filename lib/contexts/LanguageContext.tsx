@@ -1,92 +1,75 @@
 'use client';
 
-import { createContext, useContext, useState, useCallback, useEffect, ReactNode } from 'react';
-import { translations } from '../i18n/translations';
+import React, { createContext, useContext, useState, useEffect } from 'react';
+import { translations } from '@/lib/i18n/translations';
 
 type Language = 'en' | 'zh';
 
-interface Translations {
-  [key: string]: any;
-}
+type TranslationsType = typeof translations.en;
 
-type LanguageContextType = {
+interface LanguageContextType {
   language: Language;
   setLanguage: (lang: Language) => void;
-  t: (key: string) => any;
-};
+  t: (key: string) => string;
+}
 
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
 
-// 获取初始语言
-const getInitialLanguage = (): Language => {
-  // 如果在服务器端，默认返回英语
-  if (typeof window === 'undefined') {
-    return 'en';
+function getNestedValue(obj: any, path: string[]): string | undefined {
+  let current = obj;
+  for (const key of path) {
+    if (current === undefined || current === null || !(key in current)) {
+      return undefined;
+    }
+    current = current[key];
   }
+  return current;
+}
 
-  // 客户端逻辑
-  const savedLanguage = localStorage.getItem('language') as Language;
-  if (savedLanguage && (savedLanguage === 'en' || savedLanguage === 'zh')) {
-    return savedLanguage;
-  }
-  
-  const browserLang = navigator.language.toLowerCase();
-  return browserLang.startsWith('zh') ? 'zh' : 'en';
-};
-
-export function LanguageProvider({ children }: { children: ReactNode }) {
-  const [language, setLanguage] = useState<Language>(getInitialLanguage);
+export function LanguageProvider({ children }: { children: React.ReactNode }) {
   const [mounted, setMounted] = useState(false);
+  const [language, setLanguage] = useState<Language>('zh');
 
-  // 仅在客户端执行的初始化
   useEffect(() => {
+    // 从 localStorage 读取语言设置
+    const savedLanguage = localStorage.getItem('language');
+    if (savedLanguage === 'en' || savedLanguage === 'zh') {
+      setLanguage(savedLanguage);
+    }
     setMounted(true);
   }, []);
 
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('language', language);
-    }
-  }, [language]);
+  const handleSetLanguage = (lang: Language) => {
+    setLanguage(lang);
+    localStorage.setItem('language', lang);
+  };
 
-  const t = useCallback((key: string) => {
+  const t = (key: string): string => {
     try {
       const keys = key.split('.');
-      let value: any = translations[language] as Translations;
-      for (const k of keys) {
-        value = value[k];
+      const value = getNestedValue(translations[language], keys);
+      
+      if (value !== undefined) {
+        return String(value);
       }
-      return value;
+
+      // 如果在当前语言中找不到，尝试使用英语
+      console.warn(`Translation key not found: ${key}`);
+      const fallbackValue = getNestedValue(translations.en, keys);
+      return fallbackValue !== undefined ? String(fallbackValue) : key;
     } catch (error) {
-      console.error(`Translation key not found: ${key}`);
+      console.error('Translation error:', error);
       return key;
     }
-  }, [language]);
+  };
 
-  // 在服务器端或初始客户端渲染时使用英语
+  // 在客户端渲染之前返回空内容
   if (!mounted) {
-    return (
-      <LanguageContext.Provider 
-        value={{ 
-          language: 'en',
-          setLanguage: () => {},
-          t: (key: string) => {
-            const keys = key.split('.');
-            let value = translations['en'];
-            for (const k of keys) {
-              value = value[k];
-            }
-            return value;
-          }
-        }}
-      >
-        {children}
-      </LanguageContext.Provider>
-    );
+    return null;
   }
 
   return (
-    <LanguageContext.Provider value={{ language, setLanguage, t }}>
+    <LanguageContext.Provider value={{ language, setLanguage: handleSetLanguage, t }}>
       {children}
     </LanguageContext.Provider>
   );
