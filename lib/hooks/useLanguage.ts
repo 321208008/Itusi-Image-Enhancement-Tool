@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useContext, useState, useCallback, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useCallback, useEffect, ReactNode } from 'react';
 import { translations } from '../i18n/translations';
 
 type Language = 'en' | 'zh';
@@ -12,6 +12,7 @@ interface LanguageContextType {
 }
 
 const LanguageContext = createContext<LanguageContextType | null>(null);
+LanguageContext.displayName = 'LanguageContext';
 
 function getNestedValue(obj: any, path: string[]): string {
   let current = obj;
@@ -68,11 +69,7 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
     t
   };
 
-  return (
-    <LanguageContext.Provider value={value}>
-      {children}
-    </LanguageContext.Provider>
-  );
+  return React.createElement(LanguageContext.Provider, { value }, children);
 }
 
 export function useLanguage(): LanguageContextType {
