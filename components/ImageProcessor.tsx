@@ -37,17 +37,33 @@ export function ImageProcessor() {
   const [showComparison, setShowComparison] = useState(false);
   const [currentEffect, setCurrentEffect] = useState<string | null>(null);
 
+  const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB 限制
+
+  const validateImage = (file: File): string | null => {
+    if (file.size > MAX_FILE_SIZE) {
+      return `图片大小不能超过 ${MAX_FILE_SIZE / (1024 * 1024)}MB`;
+    }
+    
+    if (!file.type.startsWith('image/')) {
+      return '请选择有效的图片文件';
+    }
+
+    return null;
+  };
+
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      if (file.size > 4 * 1024 * 1024) { // 4MB 限制
+      const error = validateImage(file);
+      if (error) {
         toast({
-          title: '文件过大',
-          description: '请选择小于 4MB 的图片',
+          title: '文件无效',
+          description: error,
           variant: 'destructive',
         });
         return;
       }
+
       setImage(file);
       const reader = new FileReader();
       reader.onloadend = () => {
@@ -63,14 +79,16 @@ export function ImageProcessor() {
     e.preventDefault();
     const file = e.dataTransfer.files[0];
     if (file) {
-      if (file.size > 4 * 1024 * 1024) { // 4MB 限制
+      const error = validateImage(file);
+      if (error) {
         toast({
-          title: '文件过大',
-          description: '请选择小于 4MB 的图片',
+          title: '文件无效',
+          description: error,
           variant: 'destructive',
         });
         return;
       }
+
       setImage(file);
       const reader = new FileReader();
       reader.onloadend = () => {
@@ -248,6 +266,9 @@ export function ImageProcessor() {
               <div className="flex flex-col items-center space-y-4">
                 <Upload className="w-12 h-12 text-muted-foreground" />
                 <p className="text-muted-foreground">{t('dropzone')}</p>
+                <p className="text-sm text-muted-foreground">
+                  {t('formatHint')}
+                </p>
                 <input
                   type="file"
                   accept="image/*"

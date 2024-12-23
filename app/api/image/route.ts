@@ -4,8 +4,8 @@ import { baiduApiService } from '@/lib/services/baidu-api';
 // 配置路由为动态路由
 export const dynamic = 'force-dynamic';
 
-// 设置较长的超时时间，因为图像处理可能需要较长时间
-export const maxDuration = 300; // 5分钟超时
+// 设置超时时间为 60 秒（Vercel hobby 计划的最大限制）
+export const maxDuration = 60;
 
 export async function POST(request: NextRequest) {
   try {

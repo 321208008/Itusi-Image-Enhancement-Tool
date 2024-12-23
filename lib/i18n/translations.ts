@@ -35,7 +35,8 @@ export const translations = {
     language: 'Language',
     theme: 'Theme',
     processing: 'Processing...',
-    dropzone: 'Drop image here or click to upload'
+    dropzone: 'Drop image here or click to upload',
+    formatHint: 'Supported formats: JPG, PNG, GIF (max 5MB)'
   },
   zh: {
     title: '图像增强工具',
@@ -73,6 +74,7 @@ export const translations = {
     language: '语言',
     theme: '主题',
     processing: '处理中...',
-    dropzone: '拖放图片到此处或点击上传'
+    dropzone: '拖放图片到此处或点击上传',
+    formatHint: '支持的格式：JPG、PNG、GIF（小于 5MB）'
   }
 };
