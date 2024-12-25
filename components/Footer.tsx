@@ -6,7 +6,7 @@ export function Footer() {
 
   return (
     <footer className="w-full border-t py-6">
-      <div className="container max-w-[200px] mx-auto flex flex-col items-center gap-4">
+      <div className="container mx-auto flex flex-col items-center gap-4">
         <div className="flex items-center justify-center gap-4">
           <Button
             variant="ghost"
@@ -51,8 +51,10 @@ export function Footer() {
             </a>
           </Button>
         </div>
-        <div className="text-sm text-muted-foreground text-center">
-          © {currentYear} Image Enhancement Tool. All rights reserved.
+        <div className="flex items-center justify-center whitespace-nowrap text-sm text-muted-foreground">
+          <span>© {currentYear}</span>
+          <span className="mx-1">Image Enhancement Tool.</span>
+          <span>All rights reserved.</span>
         </div>
       </div>
     </footer>
