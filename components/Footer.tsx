@@ -6,8 +6,8 @@ export function Footer() {
 
   return (
     <footer className="w-full border-t py-6">
-      <div className="container flex flex-col items-center gap-4">
-        <div className="flex items-center gap-4">
+      <div className="container max-w-[200px] mx-auto flex flex-col items-center gap-4">
+        <div className="flex items-center justify-center gap-4">
           <Button
             variant="ghost"
             size="icon"
